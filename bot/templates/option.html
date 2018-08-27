@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+<head>
+</head>
+<body>
+  <h1>Esto es una prueba</h1>
+  <select id="options" onchange="">
+  {% for elem in  dropdown_data %}
+      <option value="{{ elem }}">{{ elem }}</option>
+  {% endfor %}
+  </select>
+  <div class="section">
+    {% include 'section.html' %}
+  </div>
+</body>
+</html>
+
+{% block javascript %}
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
+{% endblock %}
+
+<script type="text/javascript"> 
+  $(function() 
+    {
+      console.log(this.value);
+      $('#options').on('change', function() 
+      {
+        $.ajax({
+            type: 'GET',
+            url: '/api/v1/webview/generate/',
+            data: {'data' : this.value},
+            success: function(result) {
+              $('#report').replaceWith(result);
+            }
+        });
+       })
+    });
+</script>

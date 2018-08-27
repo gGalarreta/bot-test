@@ -33,9 +33,13 @@ class Message(TimeStampedModel, models.Model):
 class Conversation(TimeStampedModel):
 
     START_STATUS = 1
+    OPTION1 = 2
+    OPTION2 = 3
 
     CONVERSATION_STATUS = Choices(
         (START_STATUS, 'inicio'),
+        (OPTION1, 'opcion1'),
+        (OPTION2, 'opcion2'),
     )
 
     status = models.IntegerField(
@@ -80,6 +84,7 @@ class FacebookMediaType(Enum):
     AUDIO = 2
     IMAGE = 3
     VIDEO = 4
+
 
 class FacebookMediaMessage(EventMessage):
 
