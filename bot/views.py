@@ -55,9 +55,9 @@ class WebViewSet(viewsets.ModelViewSet):
     def generate(self, request):
         data_list = []
         if request.GET.get('data') == 'opcion 2':
-            data_list = ['opcion1']
+            data_list = ['opcion 2']
         else :
-            data_list = ['opcion2']
+            data_list = ['opcion 1']
         template = 'section.html'
         context = {'data_list': data_list}
         return render(request, template, context)
