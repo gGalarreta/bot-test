@@ -28,15 +28,18 @@ class MessageViewSet(viewsets.ModelViewSet):
 
     @list_route(methods=['post', 'get'])
     def webhook(self, request):
-        if request.method == 'POST':
-            for entry in request.data.get('entry'):
-                for message_event in entry.get('messaging', []):
-                  message = MessageFactory().make(message_event)
-                  if message:
-                    FacebookHelper.send_is_typing(message.sender_id)
-                    loop.run_in_executor(None, MessageHandlerManager().base_handler.handle_request, message)
-            return Response(status=status.HTTP_200_OK)
-        return HttpResponse(request.GET['hub.challenge'], content_type='text/plain')
+        try:
+            if request.method == 'POST':
+                for entry in request.data.get('entry'):
+                    for message_event in entry.get('messaging', []):
+                      message = MessageFactory().make(message_event)
+                      if message:
+                        FacebookHelper.send_is_typing(message.sender_id)
+                        loop.run_in_executor(None, MessageHandlerManager().base_handler.handle_request, message)
+                return Response(status=status.HTTP_200_OK)
+            return HttpResponse(request.GET['hub.challenge'], content_type='text/plain')
+        except Exception as e:
+            raise e
 
 
 class WebViewSet(viewsets.ModelViewSet):

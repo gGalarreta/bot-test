@@ -6,6 +6,7 @@ from bot.models import EventMessage, FacebookTextMessage, FacebookTextMessageTyp
 import datetime
 import sys
 import os
+from bot.services.facebook_graph_handler import FacebookGraph
 
 class FacebookGetStartedHandler(Handler):
 
@@ -19,15 +20,18 @@ class FacebookGetStartedHandler(Handler):
             sender_id=request.recipient_id,
             recipient_id=request.sender_id,
         )
-        if FacebookHelper.send_message(request.sender_id, messages.GREETINGS_MESSAGE):
-            buttons = self.build_buttons()
-            FacebookHelper.send_buttons(request.sender_id, messages.QUESTION_TITLE, buttons)
-            Message.objects.create(
-                text=request.text,
-                recipient_id=request.sender_id,
-                sender_id=request.recipient_id
-            )
-
+        try:
+            message = messages.GREETINGS_MESSAGE.replace('Hola!', 'Hola! ' + FacebookGraph().get_user_name(request.sender_id, 'first_name'))
+            if FacebookHelper.send_message(request.sender_id, message):
+                buttons = self.build_buttons()
+                FacebookHelper.send_buttons(request.sender_id, messages.QUESTION_TITLE, buttons)
+                Message.objects.create(
+                    text=request.text,
+                    recipient_id=request.sender_id,
+                    sender_id=request.recipient_id
+                )
+        except Exception as e:
+            print(sys.stderr, e)
     def build_buttons(self) -> List[Any]:
         post_backs = [
             {
