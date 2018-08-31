@@ -7,6 +7,7 @@ import datetime
 import sys
 import os
 from bot.services.facebook_graph_handler import FacebookGraph
+from bot.utils.validations import is_email
 
 class FacebookGetStartedHandler(Handler):
 
@@ -32,6 +33,7 @@ class FacebookGetStartedHandler(Handler):
                 )
         except Exception as e:
             print(sys.stderr, e)
+
     def build_buttons(self) -> List[Any]:
         post_backs = [
             {
@@ -226,6 +228,55 @@ class FacebookVideoHanlder(Handler):
                 sender_id=request.recipient_id
             )
 
+class FacebookeMailHanlder(Handler):
+    def is_valid(self, request: Any) -> bool:
+        return isinstance(request, FacebookTextMessage) \
+            and request.type is FacebookTextMessageType.QUICK_REPLY \
+            and request.text == messages.OPTION3_PAYLOAD
+
+    def perform(self, request: Any) -> bool:
+        conversation, created = Conversation.objects.get_or_create(
+            sender_id=request.recipient_id,
+            recipient_id=request.sender_id,
+        )
+        conversation.status = Conversation.EMAIL
+        conversation.save()
+        if FacebookHelper.send_message(request.sender_id, messages.OPTION3_MESSAGE):
+            FacebookHelper.send_message(request.sender_id, messages.MAIL_MESSAGE)
+            Message.objects.create(
+                text=request.text,
+                recipient_id=request.sender_id,
+                sender_id=request.recipient_id
+            )
+
+class FacebookSendEmailHandler(Handler):
+    def is_valid(self, request: Any) -> bool:
+        conversation, created = Conversation.objects.get_or_create(
+            sender_id=request.recipient_id,
+            recipient_id=request.sender_id,
+        )
+        return isinstance(request, FacebookTextMessage) \
+            and request.type is FacebookTextMessageType.PLAIN_TEXT \
+            and is_email(request.text) \
+            and conversation.status == Conversation.EMAIL
+
+    def perform(self, request: Any) -> bool:
+        conversation, created = Conversation.objects.get_or_create(
+            sender_id=request.recipient_id,
+            recipient_id=request.sender_id,
+        )
+        conversation.status = Conversation.START_STATUS
+        conversation.save()
+
+        if FacebookHelper.send_message(request.sender_id, messages.MAIL_SUCESS):
+            Message.objects.create(
+                text=request.text,
+                recipient_id=request.sender_id,
+                sender_id=request.recipient_id
+            )        
+
+
+
 class MessageHandlerManager(metaclass=Singleton):
 
     def __init__(self):
@@ -235,5 +286,7 @@ class MessageHandlerManager(metaclass=Singleton):
         list_handler = FacebookListHandler(option2_handler)
         carrousel_handler = FacebookCarrouselHandler(list_handler)
         video_handler = FacebookVideoHanlder(carrousel_handler)
-        self.base_handler = FacebookGetStartedHandler(video_handler)
+        email_handler = FacebookeMailHanlder(video_handler)
+        email_send_handler = FacebookSendEmailHandler(email_handler)
+        self.base_handler = FacebookGetStartedHandler(email_send_handler)
 

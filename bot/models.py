@@ -35,11 +35,13 @@ class Conversation(TimeStampedModel):
     START_STATUS = 1
     OPTION1 = 2
     OPTION2 = 3
+    EMAIL = 4
 
     CONVERSATION_STATUS = Choices(
         (START_STATUS, 'inicio'),
         (OPTION1, 'opcion1'),
         (OPTION2, 'opcion2'),
+        (EMAIL, 'email'),
     )
 
     status = models.IntegerField(
