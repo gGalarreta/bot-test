@@ -42,6 +42,10 @@ class FacebookGetStartedHandler(Handler):
                 'payload': messages.OPTION2_PAYLOAD,
                 'title': messages.OPTION2_TITLE,
             },
+            {
+                'payload': messages.OPTION3_PAYLOAD,
+                'title': messages.OPTION3_TITLE,
+            },
         ]
         buttons = []
         for post_back in post_backs:
@@ -141,7 +145,13 @@ class FacebookListHandler(Handler):
 
     def perform(self, request: Any) -> bool:
         if FacebookHelper.send_message(request.sender_id, messages.LIST_MESSAGE):
-            data = [{'title': 'Titulo 1', 'subtitle': 'Subtitulo 1'},{'title': 'Titulo 1', 'subtitle': 'Subtitulo 1'}]
+            #data from a service
+            data = [
+                    {'title': 'Prueba 1', 'subtitle': 'Es una prueba \n de datos en listas', 'image_url': 'https://i.imgur.com/IGNO7E6.jpg'},
+                    {'title': 'Prueba 2', 'subtitle': 'Es una prueba \n de datos en listas', 'image_url': 'https://i.imgur.com/IGNO7E6.jpg'},
+                    {'title': 'Prueba 3', 'subtitle': 'Es una prueba \n de datos en listas', 'image_url': 'https://i.imgur.com/IGNO7E6.jpg'}
+                ]
+            #
             elements = self.build_elements(data)
             FacebookHelper.send_list(request.sender_id, elements)
             Message.objects.create(
@@ -156,6 +166,7 @@ class FacebookListHandler(Handler):
             content = {
                 'title': element['title'],
                 'subtitle': element['subtitle'],
+                'image_url': element['image_url']
             }
             elements.append(content)
         return elements
@@ -168,7 +179,11 @@ class FacebookCarrouselHandler(Handler):
 
     def perform(self, request: Any) -> bool:
         if FacebookHelper.send_message(request.sender_id, messages.CARROUSEL_MESSAGE):
-            data = [{'title': 'Titulo 1', 'subtitle': 'Subtitulo 1'},{'title': 'Titulo 1', 'subtitle': 'Subtitulo 1'}]
+            #data from a service
+            data = [
+                    {'title': 'Prueba 1', 'subtitle': 'Es una prueba \n de datos en listas', 'image_url': 'https://i.imgur.com/aewqRuV.jpg', 'button_url': 'https://www.lapositiva.com.pe/wps/portal/corporativo/home'},
+                    {'title': 'Prueba 2', 'subtitle': 'Es una prueba \n de datos en listas', 'image_url': 'https://i.imgur.com/aewqRuV.jpg', 'button_url': 'https://www.lapositiva.com.pe/wps/portal/corporativo/home'}
+                ]
             elements = self.build_elements(data)
             FacebookHelper.send_carrousel(request.sender_id, elements)
             Message.objects.create(
@@ -183,7 +198,15 @@ class FacebookCarrouselHandler(Handler):
             content = {
                 'title': element['title'],
                 'subtitle': element['subtitle'],
+                'image_url': element['image_url'],
             }
+            if 'button_url' in element:
+                button = {
+                    'type': 'web_url',
+                    'url': element['button_url'],
+                    'title': 'Ver'
+                }
+                content['buttons'] = [button]
             elements.append(content)
         return elements          
 
